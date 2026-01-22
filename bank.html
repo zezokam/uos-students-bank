@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المكتبة الرقمية الشاملة - بنك ملخصات جامعة الشارقة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #004a99;
+            --secondary-color: #f39c12;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .search-box {
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        .material-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        .material-card:hover {
+            transform: translateY(-5px);
+        }
+        .material-title {
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        .section-title {
+            font-size: 0.9rem;
+            color: #777;
+            margin: 10px 0 5px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .section-title i { margin-left: 5px; }
+        .links-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .links-list li {
+            margin-bottom: 8px;
+        }
+        .links-list a {
+            text-decoration: none;
+            color: #555;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .links-list a:hover {
+            background: #eef4fb;
+            color: var(--primary-color);
+            padding-right: 15px;
+        }
+        .links-list i {
+            margin-left: 10px;
+        }
+        .fa-file-pdf { color: #e74c3c; }
+        .fa-image { color: #3498db; }
+        
+        .access-denied {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            text-align: center;
+        }
+        .access-denied i {
+            font-size: 5rem;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        .content-wrapper {
+            display: none;
+        }
+        .badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-right: auto;
+            background: #eee;
+        }
+        .badge-mid { background: #fff3cd; color: #856404; }
+        .badge-final { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>بنك ملخصات جامعة الشارقة - المكتبة الشاملة</h1>
+        </div>
+        <a href="index.html" style="text-decoration: none; color: var(--primary-color); font-weight: bold;">الخروج</a>
+    </header>
+
+    <div id="denied-message" class="access-denied">
+        <i class="fas fa-lock"></i>
+        <h2>هذا المحتوى مخصص للمشتركين فقط</h2>
+        <p>يرجى الاشتراك عبر Alfan للوصول لكافة الملخصات والنماذج.</p>
+        <a href="index.html" style="margin-top: 20px; color: var(--primary-color);">العودة لصفحة الاشتراك</a>
+    </div>
+
+    <div id="main-content" class="content-wrapper">
+        <div class="container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="ابحث عن اسم المادة (مثلاً: مدني، عقوبات، أحوال شخصية)...">
+            </div>
+
+            <div class="materials-grid" id="materialsGrid">
+                <!-- سيتم ملء هذا الجزء برمجياً -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const VALID_TOKEN = "uos2026";
+        
+        function checkAccess() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('access');
+            
+            if (token === VALID_TOKEN) {
+                localStorage.setItem('uos_bank_access', 'true');
+                window.history.replaceState({}, document.title, window.location.pathname);
+                showContent();
+            } else if (localStorage.getItem('uos_bank_access') === 'true') {
+                showContent();
+            } else {
+                showDenied();
+            }
+        }
+
+        function showContent() {
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('denied-message').style.display = 'none';
+            renderMaterials();
+        }
+
+        function showDenied() {
+            document.getElementById('main-content').style.display = 'none';
+            document.getElementById('denied-message').style.display = 'flex';
+        }
+
+        const materials = [
+            {
+                title: "إجراءات تنفيذ",
+                summaries: [
+                    { name: "ملخص منتصف", url: "https://uoser.files.wordpress.com/2018/09/d8a7d8acd8b1d8a7d8a1d8a7d8aa-d8aad986d981d98ad8b0-d985d986d8aad8b5d981.pdf", type: "mid" },
+                    { name: "ملخص النهائي", url: "https://uoser.files.wordpress.com/2018/09/d8a7d8acd8b1d8a7d8a1d8a7d8aa-d8aad986d981d98ad8b0-d8a7d984d986d987d8a7d8a6d98a.pdf", type: "final" }
+                ],
+                exams: [
+                    { name: "نماذج منتصف", url: "https://uoser.wordpress.com/2018/09/04/%d9%85%d9%86%d8%aa%d8%b5%d9%81-%d8%a7%d8%ac%d8%b1%d8%a7%d8%a1%d8%a7%d8%aa-%d8%a7%d9%84%d8%aa%d9%86%d9%81%d9%8a%d8%b0/", type: "mid" },
+                    { name: "نماذج فاينل", url: "https://uoser.wordpress.com/2018/09/04/%d9%81%d8%a7%d9%8a%d9%86%d9%84-%d8%a7%d8%ac%d8%b1%d8%a7%d8%a1%d8%a7%d8%aa-%d9%84%d8%aa%d9%86%d9%81%d9%8a%d8%b0/", type: "final" }
+                ]
+            },
+            {
+                title: "إجراءات جزائية",
+                summaries: [
+                    { name: "إجراءات جزائية فاينل", url: "https://uoser.files.wordpress.com/2018/09/d8a7d8acd8b1d8a7d8a1d8a7d8aa-d8acd8b2d8a7d8a6d98ad8a9-final.pdf", type: "final" },
+                    { name: "إجراءات جزائية منتصف", url: "https://uoser.files.wordpress.com/2018/09/d8a7d8acd8b1d8a7d8a1d8a7d8aa-d8acd8b2d8a7d8a6d98ad8a9-mid-term.pdf", type: "mid" }
+                ],
+                exams: [
+                    { name: "نماذج منتصف", url: "https://uoser.wordpress.com/2018/09/04/%d9%86%d9%85%d8%a7%d8%b0%d8%ac-%d9%85%d9%86%d8%aa%d8%b5%d9%81-%d8%a7%d8%ac%d8%b1%d8%a7%d8%a1%d8%a7%d8%aa-%d8%a2%d8%ac%d8%b2%d8%a7%d8%a6%d9%8a%d8%a9/", type: "mid" },
+                    { name: "نماذج فاينل", url: "https://uoser.wordpress.com/2018/09/04/%d9%81%d8%a7%d9%8a%d9%86%d9%84-%d8%a7%d8%ac%d8%b1%d8%a7%d8%a1%d8%a7%d8%aa-%d8%acd8b2d8a7d8a6d98ad8a9/", type: "final" }
+                ]
+            },
+            {
+                title: "إجراءات مدنية",
+                summaries: [
+                    { name: "إجراءات مدنية - فاينل", url: "https://uoser.files.wordpress.com/2018/09/d8a7d8acd8b1d8a7d8a1d8a7d8aa-d985d8afd986d98ad8a9-d981d8a7d98ad986d984.pdf", type: "final" },
+                    { name: "إجراءات مدنية - منتصف", url: "https://uoser.files.wordpress.com/2018/09/d8a7d8acd8b1d8a7d8a1d8a7d8aa-d985d8afd986d98ad8a9-mid-term.pdf", type: "mid" }
+                ],
+                exams: [
+                    { name: "نماذج منتصف", url: "https://uoser.wordpress.com/2018/09/04/%d9%86%d9%85%d8%a7%d8%b0%d8%ac-%d9%85%d9%86%d8%aa%d8%b5%d9%81-%d8%a7%d8%ac%d8%b1%d8%a7%d8%a1%d8%a7%d8%aa-%d9%85%d8%af%d9%86%d9%8a%d8%a9/", type: "mid" },
+                    { name: "نماذج فاينل", url: "https://uoser.wordpress.com/2018/09/04/%d9%86%d9%85%d8%a7%d8%b0%d8%ac-%d9%81%d8%a7%d9%8a%d9%86%d9%84-%d8%a7%d8%ac%d8%b1%d8%a7%d8%a1%d8%a7%d8%aa-%d9%85%d8%af%d9%86%d9%8a%d8%a9/", type: "final" }
+                ]
+            },
+            {
+                title: "أحكام التزام",
+                summaries: [
+                    { name: "فاينل أحكام", url: "https://uoser.files.wordpress.com/2018/09/d981d8a7d98ad986d984-d8a7d8add983d8a7d985.pdf", type: "final" },
+                    { name: "منتصف أحكام التزام", url: "https://uoser.files.wordpress.com/2018/09/d985d986d8aad8b5d981-d8a7d8add983d8a7d985-d8a7d984d8aad8b2d8a7d985.pdf", type: "mid" }
+                ],
+                exams: [
+                    { name: "نماذج منتصف", url: "https://uoser.wordpress.com/2018/09/04/%d9%86%d9%85%d8%a7%d8%b0%d8%ac-%d9%85%d9%86%d8%aa%d8%b5%d9%81-%d8%a7%d8%ad%d9%83%d8%a7%d9%85-%d8%a7%d9%84%d8%aa%d8%b2%d8%a7%d9%85/", type: "mid" },
+                    { name: "نماذج فاينل", url: "https://uoser.wordpress.com/2018/09/04/%d9%86%d9%85%d8%a7%d8%b0%d8%ac-%d9%81%d8%a7%d9%8a%d9%86%d9%84-%d8%a7%d8%ad%d9%83%d8%a7%d9%85-%d8%a7%d9%84%d8%aa%d8%b2%d8%a7%d9%85/", type: "final" }
+                ]
+            },
+            {
+                title: "القانون الإداري",
+                summaries: [
+                    { name: "ملخص إداري 1 (منتصف)", url: "https://uoser.files.wordpress.com/2018/09/d985d984d8aed8b5-d8a7d8afd8a7d8b1d98a-d9a1-d985d986d8aad8b5d981.pdf", type: "mid" },
+                    { name: "ملخص إداري (فاينل)", url: "https://uoser.files.wordpress.com/2018/09/d985d984d8aed8b5-d8a7d8afd8a7d8b1d98a-d981d8a7d98ad986d984.pdf", type: "final" }
+                ],
+                exams: [
+                    { name: "نماذج منتصف إداري 1", url: "https://uoser.wordpress.com/2018/09/04/%d9%86%d9%85%d8%a7%d8%b0%d8%ac-%d9%85%d9%86%d8%aa%d8%b5%d9%81-%d8%a7%d8%af%d8%a7%d8%b1%d9%8a-1/", type: "mid" },
+                    { name: "نماذج فاينل إداري 1", url: "https://uoser.wordpress.com/2018/09/04/%d9%86%d9%85%d8%a7%d8%b0%d8%ac-%d9%81%d8%a7%d9%8a%d9%86%d9%84-%d8%a5%d8%af%d8%a7%d8%b1%d9%8a-1/", type: "final" }
+                ]
+            },
+            {
+                title: "قانون العقوبات",
+                summaries: [
+                    { name: "عقوبات عام 1 - فاينل", url: "https://uoser.files.wordpress.com/2018/09/d985d984d8aed8b5-d8a7d984d8b9d982d988d8a8d8a7d8aa-final.pdf", type: "final" },
+                    { name: "عقوبات عام 1 - منتصف", url: "https://uoser.files.wordpress.com/2018/09/d985d984d8aed8b5-d982d8a7d986d988d986-d8a7d984d8b9d982d988d8a8d8a7d8aa-mid-term.pdf", type: "mid" }
+                ],
+                exams: [
+                    { name: "نماذج منتصف عقوبات 1", url: "https://uoser.wordpress.com/2018/09/04/%d9%86%d9%85%d8%a7%d8%b0%d8%ac-%d9%85%d9%86%d8%aa%d8%b5%d9%81-%d8%b9%d9%82%d9%88%d8%a8%d8%a7%d8%aa-%d8%b9%d8%a7%d9%85-1/", type: "mid" },
+                    { name: "نماذج فاينل عقوبات 1", url: "https://uoser.wordpress.com/2018/09/04/%d9%86%d9%85%d8%a7%d8%b0%d8%ac-%d9%81%d8%a7%d9%8a%d9%86%d9%84-%d8%b9%d9%82%d9%88%d8%a8%d8%a7%d8%aa-%d8%b9%d8%a7%d9%85-1/", type: "final" }
+                ]
+            }
+            // يمكن إضافة المزيد من المواد هنا بنفس التنسيق
+        ];
+
+        function renderMaterials(filter = "") {
+            const grid = document.getElementById('materialsGrid');
+            grid.innerHTML = "";
+            
+            const filtered = materials.filter(m => m.title.includes(filter));
+            
+            filtered.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'material-card';
+                
+                let summariesHtml = "";
+                if (m.summaries && m.summaries.length > 0) {
+                    summariesHtml = `<div class="section-title"><i class="fas fa-file-alt"></i> الملخصات الشاملة</div><ul class="links-list">`;
+                    m.summaries.forEach(l => {
+                        const badgeClass = l.type === 'mid' ? 'badge-mid' : 'badge-final';
+                        const badgeText = l.type === 'mid' ? 'منتصف' : 'نهائي';
+                        summariesHtml += `
+                            <li>
+                                <a href="${l.url}" target="_blank">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>${l.name}</span>
+                                    <span class="badge ${badgeClass}">${badgeText}</span>
+                                </a>
+                            </li>
+                        `;
+                    });
+                    summariesHtml += `</ul>`;
+                }
+
+                let examsHtml = "";
+                if (m.exams && m.exams.length > 0) {
+                    examsHtml = `<div class="section-title"><i class="fas fa-paste"></i> نماذج الاختبارات</div><ul class="links-list">`;
+                    m.exams.forEach(l => {
+                        const badgeClass = l.type === 'mid' ? 'badge-mid' : 'badge-final';
+                        const badgeText = l.type === 'mid' ? 'منتصف' : 'نهائي';
+                        examsHtml += `
+                            <li>
+                                <a href="${l.url}" target="_blank">
+                                    <i class="fas fa-image"></i>
+                                    <span>${l.name}</span>
+                                    <span class="badge ${badgeClass}">${badgeText}</span>
+                                </a>
+                            </li>
+                        `;
+                    });
+                    examsHtml += `</ul>`;
+                }
+
+                card.innerHTML = `
+                    <div class="material-title">${m.title}</div>
+                    ${summariesHtml}
+                    ${examsHtml}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            renderMaterials(e.target.value);
+        });
+
+        checkAccess();
+    </script>
+</body>
+</html>
